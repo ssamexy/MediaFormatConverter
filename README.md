@@ -104,47 +104,44 @@ No prerequisites needed - all dependencies are automatically installed!
 
 ### Google Colab Usage
 
-1. **Open the notebook**
+#### Option 1: One-Click Version (Recommended)
 
-   Upload `MediaFormatConverter_Colab.ipynb` to Google Colab or click this link:
+The easiest way to use this tool - everything runs in a single cell!
 
-   [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/YOUR_USERNAME/MediaFormatConverter/blob/main/MediaFormatConverter_Colab.ipynb)
+1. **Open the one-click notebook:**
+
+   [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ssamexy/MediaFormatConverter/blob/main/MediaFormatConverter_Colab_OneClick.ipynb)
+
+2. **Run the single cell** (click the play button or press Shift+Enter)
+
+3. **That's it!** The notebook will:
+   - Install all dependencies automatically
+   - Prompt you to upload MP4 files
+   - Convert all files to MP3
+   - Download the MP3 files automatically
+   - Clean up temporary files
+
+**No need to run multiple cells - everything happens automatically!**
+
+#### Option 2: Step-by-Step Version
+
+For more control over the conversion process:
+
+1. **Open the step-by-step notebook:**
+
+   [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ssamexy/MediaFormatConverter/blob/main/MediaFormatConverter_Colab.ipynb)
 
 2. **Run the cells in order:**
-
-   **Cell 1: Setup** - Installs ffmpeg and dependencies
-   ```python
-   # Automatically installs:
-   # - ffmpeg
-   # - ffmpeg-python
-   ```
-
-   **Cell 2: Load Functions** - Loads converter functions
-
-   **Cell 3: Upload Files** - Upload your MP4 files
-   ```python
-   # Click "Choose Files" and select your MP4 files
-   ```
-
-   **Cell 4: Single File Conversion** (Optional)
-   ```python
-   # Update the filename and run
-   input_file = "your_video.mp4"
-   ```
-
-   **Cell 5: Batch Conversion** (Optional)
-   ```python
-   # Converts all uploaded MP4 files
-   ```
-
-   **Cell 6: Download** - Download converted MP3 files
-
-   **Cell 7: Cleanup** (Optional) - Remove files from Colab
+   - **Cell 1: Setup** - Installs ffmpeg and dependencies
+   - **Cell 2: Load Functions** - Loads converter functions
+   - **Cell 3: Upload Files** - Upload your MP4 files
+   - **Cell 4: Single File Conversion** (Optional)
+   - **Cell 5: Batch Conversion** (Optional)
+   - **Cell 6: Download** - Download converted MP3 files
+   - **Cell 7: Cleanup** (Optional) - Remove files from Colab
 
 3. **Tips for Colab:**
-   - You can upload multiple files at once in Cell 3
-   - Use Cell 4 for single file conversion
-   - Use Cell 5 to convert all uploaded files at once
+   - You can upload multiple files at once
    - Remember to download your MP3 files before closing the notebook
    - Colab has file size limits (typically 100MB per file for free tier)
 
@@ -256,11 +253,12 @@ pip install --upgrade ffmpeg-python
 
 ```
 MediaFormatConverter/
-├── converter.py                      # Main CLI converter script
-├── MediaFormatConverter_Colab.ipynb  # Google Colab notebook
-├── requirements.txt                   # Python dependencies
-├── spec.md                           # Project specification
-└── README.md                         # This file
+├── converter.py                              # Main CLI converter script
+├── MediaFormatConverter_Colab.ipynb          # Google Colab notebook (step-by-step)
+├── MediaFormatConverter_Colab_OneClick.ipynb # Google Colab notebook (one-click)
+├── requirements.txt                          # Python dependencies
+├── spec.md                                   # Project specification
+└── README.md                                 # This file
 ```
 
 ## Technical Details
