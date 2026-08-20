@@ -1,18 +1,36 @@
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
+import {
+  buildOutputArgs,
+  canConvertToOutput,
+  DEFAULT_OUTPUT_FORMAT,
+  getFileExtension,
+  getInputFormat,
+  getOutputFormat,
+  INPUT_ACCEPT,
+  isSupportedInput,
+  outputFormatMeta,
+  outputFormatSummary,
+} from "./formats.js";
 
 const LARGE_FILE_WARNING_SIZE = 250 * 1024 * 1024;
 const DEFAULT_BITRATE = "192k";
-const INPUT_FILE_NAME = "input.mp4";
-const OUTPUT_FILE_NAME = "output.mp3";
+const INPUT_FILE_PREFIX = "input";
+const OUTPUT_FILE_PREFIX = "output";
 
 const ffmpeg = new FFmpeg();
 const fileInput = document.querySelector("#file-input");
 const dropZone = document.querySelector("#drop-zone");
 const chooseFilesButton = document.querySelector("#choose-files-button");
 const selectedFileLabel = document.querySelector("#selected-file");
+const outputFormatSelect = document.querySelector("#output-format-select");
+const bitrateField = document.querySelector("#bitrate-field");
 const bitrateSelect = document.querySelector("#bitrate-select");
 const heroQuality = document.querySelector("#hero-quality");
+const heroInputFormat = document.querySelector("#hero-input-format");
+const heroOutputFormat = document.querySelector("#hero-output-format");
+const formatBadgeInput = document.querySelector("#format-badge-input");
+const formatBadgeOutput = document.querySelector("#format-badge-output");
 const loadButton = document.querySelector("#load-button");
 const convertButton = document.querySelector("#convert-button");
 const convertCount = document.querySelector("#convert-count");
@@ -88,6 +106,52 @@ function selectedBitrate() {
   return bitrateSelect.value || DEFAULT_BITRATE;
 }
 
+function selectedOutputFormat() {
+  return outputFormatSelect.value || DEFAULT_OUTPUT_FORMAT;
+}
+
+function queueHasAudioInput() {
+  return queue.some((item) => getInputFormat(item.file)?.kind === "audio");
+}
+
+function queueInputSummary() {
+  if (queue.length === 0) {
+    return "影音";
+  }
+
+  const kinds = new Set(
+    queue.map((item) => getInputFormat(item.file)?.kind).filter(Boolean),
+  );
+
+  if (kinds.size > 1) {
+    return "影音";
+  }
+
+  return kinds.has("video") ? "影片" : "音訊";
+}
+
+function normalizeOutputSelection() {
+  const selectedFormat = getOutputFormat(selectedOutputFormat());
+
+  if (selectedFormat.kind === "video" && queueHasAudioInput()) {
+    outputFormatSelect.value = DEFAULT_OUTPUT_FORMAT;
+    return true;
+  }
+
+  return false;
+}
+
+function updateFormatSummary() {
+  const formatId = selectedOutputFormat();
+  const outputFormat = getOutputFormat(formatId);
+  heroQuality.textContent = outputFormatSummary(formatId, selectedBitrate());
+  heroInputFormat.textContent = queueInputSummary();
+  heroOutputFormat.textContent = outputFormat.label.split(" ")[0];
+  formatBadgeInput.textContent = queueInputSummary();
+  formatBadgeOutput.textContent = outputFormat.label.split(" ")[0];
+  bitrateField.hidden = formatId !== "mp3";
+}
+
 function doneItems() {
   return queue.filter((item) => item.status === "done");
 }
@@ -150,29 +214,51 @@ function updateSelectedSummary() {
 }
 
 function updateBitrateSummary() {
-  heroQuality.textContent = formatBitrate(selectedBitrate());
+  updateFormatSummary();
 }
 
 function updateControls() {
   const pendingCount = pendingItems().length;
   const completedCount = doneItems().length;
+  const outputChanged = normalizeOutputSelection();
+  const hasIncompatiblePending = pendingItems().some(
+    (item) => !canConvertToOutput(item.file, selectedOutputFormat()),
+  );
 
   fileInput.disabled = isBusy;
   chooseFilesButton.disabled = isBusy;
+  outputFormatSelect.disabled = isBusy;
   bitrateSelect.disabled = isBusy;
   loadButton.disabled = isBusy || isLoaded;
   clearButton.disabled = isBusy || queue.length === 0;
   downloadAllButton.disabled = isBusy || completedDownloadItems().length === 0;
-  convertButton.disabled = isBusy || !isLoaded || pendingCount === 0;
+  convertButton.disabled =
+    isBusy ||
+    !isLoaded ||
+    pendingCount === 0 ||
+    hasIncompatiblePending;
   convertCount.textContent = String(pendingCount);
   downloadAllCount.textContent = String(completedCount);
   dropZone.classList.toggle("disabled", isBusy);
+  [...outputFormatSelect.options].forEach((option) => {
+    option.disabled =
+      queueHasAudioInput() && getOutputFormat(option.value).kind === "video";
+  });
   queueList.querySelectorAll(".queue-action-convert").forEach((button) => {
-    button.disabled = isBusy || !isLoaded;
+    button.disabled =
+      isBusy ||
+      !isLoaded ||
+      button.dataset.incompatible === "true";
   });
   queueList.querySelectorAll(".queue-action-remove").forEach((button) => {
     button.disabled = isBusy;
   });
+  updateFormatSummary();
+
+  if (outputChanged && !isBusy) {
+    setStatus("目前佇列含音訊檔案，影片輸出已切回 MP3。");
+  }
+
   updateWorkflow();
 }
 
@@ -216,8 +302,12 @@ function outputFileNameFor(item) {
       .filter((candidate) => candidate !== item && candidate.outputFileName)
       .map((candidate) => candidate.outputFileName),
   );
+  const format = getOutputFormat(item.outputFormat || selectedOutputFormat());
 
-  return uniqueFileName(cleanBaseName(item.file.name) + ".mp3", usedNames);
+  return uniqueFileName(
+    cleanBaseName(item.file.name) + "." + format.extension,
+    usedNames,
+  );
 }
 
 function renderQueue() {
@@ -243,10 +333,14 @@ function renderQueue() {
       row.classList.add("large-file");
     }
 
+    const outputFormat = getOutputFormat(
+      item.outputFormat || selectedOutputFormat(),
+    );
+    const inputFormat = getInputFormat(item.file);
     const icon = createElement(
       "span",
       "queue-file-icon",
-      item.status === "done" ? "♫" : "•",
+      item.status === "done" ? (outputFormat.kind === "video" ? "▶" : "♫") : "•",
     );
     icon.setAttribute("aria-hidden", "true");
 
@@ -264,8 +358,10 @@ function renderQueue() {
     const bitrate = item.bitrate || selectedBitrate();
     const fileMeta =
       formatBytes(item.file.size) +
-      " · MP3 " +
-      formatBitrate(bitrate) +
+      " · " +
+      (inputFormat?.label || "影音") +
+      " → " +
+      outputFormatMeta(outputFormat.id, bitrate) +
       (item.file.size > LARGE_FILE_WARNING_SIZE ? " · 大型檔案" : "");
     const metadata = createElement("span", "queue-file-meta", fileMeta);
     content.append(topLine, metadata);
@@ -312,7 +408,12 @@ function renderQueue() {
         item.status === "error" ? "重試" : "轉檔",
       );
       convert.type = "button";
-      convert.disabled = isBusy || !isLoaded;
+      const isIncompatible = !canConvertToOutput(
+        item.file,
+        selectedOutputFormat(),
+      );
+      convert.disabled = isBusy || !isLoaded || isIncompatible;
+      convert.dataset.incompatible = String(isIncompatible);
       convert.setAttribute(
         "aria-label",
         (item.status === "error" ? "重試 " : "轉檔 ") + item.file.name,
@@ -348,7 +449,7 @@ function renderQueue() {
 }
 
 function cleanBaseName(fileName) {
-  const withoutExtension = fileName.replace(/\.mp4$/i, "");
+  const withoutExtension = fileName.replace(/\.[^.]+$/, "");
   const safeName = withoutExtension
     .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "_")
     .replace(/[. ]+$/g, "")
@@ -372,9 +473,10 @@ function addFiles(fileList) {
   let invalid = 0;
   let large = 0;
   let duplicate = 0;
+  const previousOutputFormat = selectedOutputFormat();
 
   files.forEach((file) => {
-    if (!file.name.toLowerCase().endsWith(".mp4")) {
+    if (!isSupportedInput(file)) {
       invalid += 1;
       return;
     }
@@ -395,12 +497,15 @@ function addFiles(fileList) {
       return;
     }
 
+    const inputFormat = getInputFormat(file);
     queue.push({
       id: String(nextQueueId),
       file,
+      inputFormat: inputFormat.extension,
       status: "queued",
       progress: 0,
       bitrate: null,
+      outputFormat: null,
       outputUrl: null,
       outputBlob: null,
       outputFileName: "",
@@ -424,6 +529,9 @@ function addFiles(fileList) {
   if (duplicate > 0) {
     notes.push(duplicate + " 個重複檔案");
   }
+  if (previousOutputFormat !== selectedOutputFormat()) {
+    notes.push("音訊檔案只能輸出音訊，已切回 MP3");
+  }
 
   if (added > 0) {
     const nextStep = isLoaded
@@ -440,7 +548,7 @@ function addFiles(fileList) {
   setStatus(
     notes.length > 0
       ? "沒有加入檔案：" + notes.join("、") + "。"
-      : "沒有找到可加入的 MP4 檔案。",
+      : "沒有找到可加入的支援影音檔案。",
     "error",
   );
 }
@@ -477,7 +585,7 @@ function clearQueue() {
   progress.value = 0;
   progressLabel.textContent = "";
   renderQueue();
-  setStatus("佇列已清除，可以加入新的 MP4 檔案。");
+  setStatus("佇列已清除，可以加入新的影音檔案。");
 }
 
 async function loadConverter() {
@@ -518,7 +626,7 @@ async function loadConverter() {
     setStatus(
       queue.length > 0
         ? "轉檔器已就緒，可以開始轉檔。"
-        : "轉檔器已就緒，請先加入 MP4 檔案。",
+        : "轉檔器已就緒，請先加入影音檔案。",
       "success",
     );
   } catch {
@@ -545,15 +653,29 @@ async function deleteTemporaryFile(fileName) {
   }
 }
 
+function temporaryInputFileName(item) {
+  return INPUT_FILE_PREFIX + "." + getFileExtension(item.file.name);
+}
+
+function temporaryOutputFileName(formatId) {
+  return OUTPUT_FILE_PREFIX + "." + getOutputFormat(formatId).extension;
+}
+
 async function convertItem(item, index, total) {
   activeItemId = item.id;
   activeIndex = index;
   batchTotal = total;
   item.status = "converting";
   item.progress = 0;
-  item.bitrate = selectedBitrate();
+  item.outputFormat = selectedOutputFormat();
+  item.bitrate = item.outputFormat === "mp3" ? selectedBitrate() : null;
   item.error = "";
   revokeOutput(item);
+
+  const format = getOutputFormat(item.outputFormat);
+  const inputFileName = temporaryInputFileName(item);
+  const outputFileName = temporaryOutputFileName(item.outputFormat);
+
   renderQueue();
   progress.hidden = false;
   progress.value = 0;
@@ -562,36 +684,30 @@ async function convertItem(item, index, total) {
     "正在轉檔 " + (index + 1) + "/" + total + "：" + item.file.name + "…",
   );
 
-  await deleteTemporaryFile(INPUT_FILE_NAME);
-  await deleteTemporaryFile(OUTPUT_FILE_NAME);
+  await deleteTemporaryFile(inputFileName);
+  await deleteTemporaryFile(outputFileName);
 
   try {
-    await ffmpeg.writeFile(INPUT_FILE_NAME, await fetchFile(item.file));
+    await ffmpeg.writeFile(inputFileName, await fetchFile(item.file));
     setStatus(
       "正在轉檔 " + (index + 1) + "/" + total + "，請保持此頁開啟…",
     );
 
-    const exitCode = await ffmpeg.exec([
-      "-i",
-      INPUT_FILE_NAME,
-      "-vn",
-      "-map",
-      "0:a:0",
-      "-c:a",
-      "libmp3lame",
-      "-b:a",
-      item.bitrate,
-      "-map_metadata",
-      "0",
-      OUTPUT_FILE_NAME,
-    ]);
+    const exitCode = await ffmpeg.exec(
+      buildOutputArgs(
+        item.outputFormat,
+        inputFileName,
+        outputFileName,
+        item.bitrate || DEFAULT_BITRATE,
+      ),
+    );
 
     if (exitCode !== 0) {
       throw new Error("conversion-failed");
     }
 
-    const outputData = await ffmpeg.readFile(OUTPUT_FILE_NAME);
-    item.outputBlob = new Blob([outputData], { type: "audio/mpeg" });
+    const outputData = await ffmpeg.readFile(outputFileName);
+    item.outputBlob = new Blob([outputData], { type: format.mime });
     item.outputUrl = URL.createObjectURL(item.outputBlob);
     item.outputFileName = outputFileNameFor(item);
     item.outputSize = outputData.byteLength;
@@ -600,17 +716,19 @@ async function convertItem(item, index, total) {
     return true;
   } catch {
     item.status = "error";
-    item.error = "檔案可能損壞或不含音訊；可修正後按轉檔或批次轉檔重試。";
+    item.error =
+      "無法以 " +
+      format.label +
+      " 產生輸出；檔案可能損壞、缺少所需影音軌，或此裝置記憶體不足。";
     return false;
   } finally {
-    await deleteTemporaryFile(INPUT_FILE_NAME);
-    await deleteTemporaryFile(OUTPUT_FILE_NAME);
+    await deleteTemporaryFile(inputFileName);
+    await deleteTemporaryFile(outputFileName);
     activeItemId = null;
     activeIndex = -1;
     renderQueue();
   }
 }
-
 async function convertQueue() {
   if (!isLoaded || isBusy) {
     return;
@@ -830,7 +948,7 @@ async function downloadAll() {
   const items = completedDownloadItems();
 
   if (items.length === 0) {
-    setStatus("目前沒有可下載的 MP3。", "error");
+    setStatus("目前沒有可下載的轉換結果。", "error");
     return;
   }
 
@@ -838,7 +956,7 @@ async function downloadAll() {
   progress.hidden = false;
   progress.value = 0;
   progressLabel.textContent = "準備 ZIP";
-  setStatus("正在準備 " + items.length + " 個 MP3 的 ZIP…");
+  setStatus("正在準備 " + items.length + " 個轉換結果的 ZIP…");
 
   try {
     const entries = [];
@@ -852,10 +970,10 @@ async function downloadAll() {
     }
 
     const zipBlob = createZipBlob(entries);
-    triggerDownload(zipBlob, "mp4-to-mp3.zip");
+    triggerDownload(zipBlob, "converted-media.zip");
     progress.value = 100;
     progressLabel.textContent = "ZIP 完成";
-    setStatus("已準備 " + items.length + " 個 MP3，開始下載 ZIP。", "success");
+    setStatus("已準備 " + items.length + " 個檔案，開始下載 ZIP。", "success");
   } catch {
     setStatus("批次下載失敗，請保留分頁開啟後再試。", "error");
   } finally {
@@ -890,6 +1008,7 @@ ffmpeg.on("progress", ({ progress: conversionProgress }) => {
   }
 });
 
+fileInput.accept = INPUT_ACCEPT;
 fileInput.addEventListener("change", (event) => {
   addFiles(event.target.files);
 });
@@ -900,12 +1019,24 @@ chooseFilesButton.addEventListener("click", () => {
   }
 });
 
+outputFormatSelect.addEventListener("change", () => {
+  const outputChanged = normalizeOutputSelection();
+  updateBitrateSummary();
+  renderQueue();
+
+  if (outputChanged) {
+    setStatus("目前佇列含音訊檔案，影片輸出已切回 MP3。", "error");
+  } else if (doneItems().length > 0) {
+    setStatus("輸出格式只會套用到下一次轉檔；已完成的檔案不會改變。");
+  }
+});
+
 bitrateSelect.addEventListener("change", () => {
   updateBitrateSummary();
   renderQueue();
 
   if (doneItems().length > 0) {
-    setStatus("音質設定只會套用到下一次轉檔；已完成的 MP3 不會改變。");
+    setStatus("音質設定只會套用到下一次 MP3 轉檔；已完成的檔案不會改變。");
   }
 });
 
