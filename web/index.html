@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="在瀏覽器內批次將 MP4 轉換成 MP3，不上傳影片檔案。"
+      content="在瀏覽器內批次轉換常見影音格式，不上傳檔案。"
     />
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; worker-src 'self' blob:; base-uri 'none'; form-action 'self'"
     />
-    <title>Media Format Converter｜MP4 to MP3</title>
+    <title>Media Format Converter｜Browser Media Converter</title>
     <link rel="stylesheet" href="./src/style.css?direct" />
   </head>
   <body>
@@ -43,9 +43,9 @@
         <section class="hero" aria-labelledby="page-title">
           <div class="hero-copy-block">
             <p class="eyebrow">LOCAL-FIRST · NO UPLOAD</p>
-            <h1 id="page-title">把影片聲音<br /><span>留在你的裝置。</span></h1>
+            <h1 id="page-title">把媒體轉換<br /><span>留在你的裝置。</span></h1>
             <p class="hero-copy">
-              一次加入多個 MP4，依序轉成 MP3。整個流程在你的瀏覽器完成，檔案不會上傳到伺服器。
+              一次加入多個影音檔案，轉成 MP3、WAV、FLAC、OGG、Opus 或影片格式。整個流程在你的瀏覽器完成，檔案不會上傳到伺服器。
             </p>
           </div>
 
@@ -56,10 +56,10 @@
               <p>第一次載入引擎後，就能在同一個佇列中批次處理檔案。</p>
             </div>
             <div class="hero-note-meta">
-              <span>MP4</span>
+              <span id="hero-input-format">影音</span>
               <span class="hero-arrow" aria-hidden="true">→</span>
-              <span>MP3</span>
-              <span class="hero-note-quality" id="hero-quality">192 kbps</span>
+              <span id="hero-output-format">MP3</span>
+              <span class="hero-note-quality" id="hero-quality">MP3 · 192 kbps</span>
             </div>
           </aside>
         </section>
@@ -84,20 +84,20 @@
           <div class="workflow-step" data-step="3">
             <span class="step-number">03</span>
             <span class="step-copy">
-              <strong>下載 MP3</strong>
-              <small>每個檔案獨立下載</small>
+              <strong>下載結果</strong>
+              <small>逐檔或一次下載 ZIP</small>
             </span>
           </div>
         </nav>
 
-        <section class="workspace-grid" aria-label="MP4 轉 MP3 工作區">
+        <section class="workspace-grid" aria-label="影音格式轉換工作區">
           <div class="workspace-card" aria-labelledby="converter-title">
             <div class="card-heading">
               <div>
                 <p class="section-kicker">CONVERTER WORKSPACE</p>
                 <h2 id="converter-title">加入要轉換的檔案</h2>
               </div>
-              <span class="format-badge">MP4 <span aria-hidden="true">→</span> MP3</span>
+              <span class="format-badge"><span id="format-badge-input">影音</span> <span aria-hidden="true">→</span> <span id="format-badge-output">MP3</span></span>
             </div>
 
             <div class="privacy-note" role="note">
@@ -118,29 +118,46 @@
               <input
                 id="file-input"
                 type="file"
-                accept=".mp4,video/mp4"
+                accept=".mp4,.webm,.mov,.mkv,.avi,.m4v,.ogv,.mpeg,.mpg,.ts,.mp3,.wav,.m4a,.aac,.flac,.ogg,.oga,.opus"
                 multiple
-                aria-label="選取 MP4 檔案"
+                aria-label="選取影音檔案"
               />
               <span class="upload-icon" aria-hidden="true">↑</span>
-              <h3>拖曳 MP4 檔案到這裡</h3>
+              <h3>拖曳影音檔案到這裡</h3>
               <p>或點擊下方按鈕，一次選取多個檔案</p>
               <button class="button button-secondary" id="choose-files-button" type="button">
-                選取 MP4 檔案
+                選取影音檔案
               </button>
               <span class="selected-file" id="selected-file">尚未加入檔案</span>
             </div>
             <p class="field-help" id="upload-help">
-              支援 .mp4 · 不設硬性大小上限 · 大型檔案可能需要較多記憶體
+              支援 MP4、WebM、MOV、MKV、AVI、MP3、WAV、M4A、FLAC、OGG、Opus · 不設硬性大小上限
             </p>
 
-            <div class="settings-panel" aria-label="MP3 輸出設定">
+            <div class="settings-panel" aria-label="輸出格式設定">
               <div class="settings-heading">
                 <p class="section-kicker">OUTPUT SETTINGS</p>
-                <span>MP3</span>
+                <span>選擇格式</span>
               </div>
-              <label class="settings-field" for="bitrate-select">
-                <span>音質 / 位元率</span>
+              <label class="settings-field" for="output-format-select">
+                <span>輸出格式</span>
+                <select id="output-format-select">
+                  <optgroup label="音訊">
+                    <option value="mp3" selected>MP3 · 相容性最佳</option>
+                    <option value="m4a">M4A (AAC) · 手機與影音</option>
+                    <option value="wav">WAV · 未壓縮 PCM</option>
+                    <option value="flac">FLAC · 無損音訊</option>
+                    <option value="ogg">OGG (Vorbis) · 開放格式</option>
+                    <option value="opus">Opus · 高效率</option>
+                  </optgroup>
+                  <optgroup label="影片（僅影片輸入）">
+                    <option value="mp4">MP4 (H.264) · 影片轉碼</option>
+                    <option value="webm">WebM (VP8) · 影片轉碼</option>
+                  </optgroup>
+                </select>
+              </label>
+              <label class="settings-field" id="bitrate-field" for="bitrate-select">
+                <span>MP3 音質 / 位元率</span>
                 <select id="bitrate-select">
                   <option value="128k">128 kbps · 小檔案</option>
                   <option value="192k" selected>192 kbps · 建議</option>
@@ -148,9 +165,8 @@
                   <option value="320k">320 kbps · 最高</option>
                 </select>
               </label>
-              <small>設定會套用到下一次轉檔；已完成的 MP3 不會被改寫。</small>
+              <small id="output-settings-help">輸出格式只會套用到下一次轉檔；影片輸出需要影片輸入，已完成的檔案不會改變。</small>
             </div>
-
             <div class="engine-panel">
               <div class="engine-status">
                 <span class="engine-dot" id="engine-dot" aria-hidden="true"></span>
@@ -214,13 +230,13 @@
             <div class="queue-empty" id="queue-empty">
               <span class="queue-empty-icon" aria-hidden="true">☷</span>
               <strong>佇列目前為空</strong>
-              <p>把一個或多個 MP4 拖到左側，就會顯示在這裡。</p>
+              <p>把一個或多個影音檔案拖到左側，就會顯示在這裡。</p>
             </div>
             <div class="queue-list" id="queue-list" role="list"></div>
 
             <p class="queue-footnote">
               <span aria-hidden="true">⚡</span>
-              轉檔依序在此瀏覽器執行；無硬性大小上限，但大型檔案可能耗用較多記憶體。
+              轉檔依序在此瀏覽器執行；無硬性大小上限，但大型檔案可能耗用較多記憶體。影片輸出會更耗時。
             </p>
           </aside>
         </section>
@@ -230,14 +246,14 @@
             <span class="help-icon" aria-hidden="true">01</span>
             <div>
               <h2>加入檔案</h2>
-              <p>拖曳或點擊選取多個 MP4，檔案會先進入佇列，不會立即上傳；也可隨時移除項目。</p>
+              <p>拖曳或點擊選取多個影音檔案，檔案會先進入佇列，不會立即上傳；也可隨時移除項目。</p>
             </div>
           </article>
           <article class="help-card">
             <span class="help-icon" aria-hidden="true">02</span>
             <div>
               <h2>載入並轉換</h2>
-              <p>載入引擎後，可按「開始批次轉檔」，或在單一佇列項目按「轉檔」。</p>
+              <p>載入引擎後選擇輸出格式，可按「開始批次轉檔」，或在單一佇列項目按「轉檔」。</p>
             </div>
           </article>
           <article class="help-card">

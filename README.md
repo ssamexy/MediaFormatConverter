@@ -1,6 +1,6 @@
 # Media Format Converter
 
-A simple and efficient tool to convert MP4 video files to MP3 audio format. Works on local machines and Google Colab.
+A local-first media converter for common video and audio formats. The browser app runs conversion in WebAssembly without uploading files; the existing CLI and Colab workflows remain available for MP4 to MP3.
 
 ## Features
 
@@ -10,9 +10,9 @@ A simple and efficient tool to convert MP4 video files to MP3 audio format. Work
 - **High Quality**: Uses 192kbps bitrate for excellent audio quality
 - **User-Friendly**: Interactive CLI interface with clear prompts
 - **Automatic Setup**: Auto-installs dependencies on Google Colab
-- **Browser Converter**: Convert MP4 files to MP3 locally in a web browser with WebAssembly
+- **Browser Converter**: Convert common video/audio files locally in a web browser with WebAssembly
 - **Browser Queue Controls**: Remove queued items, convert one item, retry failures, or process the remaining queue in batch
-- **Batch Downloads**: Download completed MP3 files individually or as one ZIP archive
+- **Batch Downloads**: Download completed results individually or as one ZIP archive
 - **Configurable Bitrate**: Choose 128, 192, 256, or 320 kbps for the next browser conversion
 
 ## Requirements
@@ -151,19 +151,34 @@ For more control over the conversion process:
 
 ## Browser Usage
 
-The browser converter lives in `web/` and uses pinned `ffmpeg.wasm` packages with a Vite build. The conversion runs in a Web Worker in the browser; selected MP4 files are not sent to a backend or cloud storage service.
+The browser converter lives in web/ and uses pinned ffmpeg.wasm packages with a Vite build. Conversion runs locally in the browser; selected files are not sent to a backend or cloud storage service.
 
-In the browser UI:
+### Supported browser inputs
 
-1. Select or drag one or more `.mp4` files into the queue.
-2. Load the local WebAssembly converter the first time you use the page.
-3. Choose an MP3 bitrate for the next conversion: 128, 192, 256, or 320 kbps.
-4. Use `轉檔` on an individual queue item, or use `開始轉檔` to process all queued and failed items sequentially.
-5. Remove queued, failed, or completed items with `移除`; the item currently being converted stays locked until it finishes.
-6. Download each completed MP3, or use `下載全部` to download all completed files as one ZIP archive.
+The first browser-supported input matrix covers common containers and codecs by file extension:
+
+- Video: .mp4, .webm, .mov, .mkv, .avi, .m4v, .ogv, .mpeg, .mpg, .ts
+- Audio: .mp3, .wav, .m4a, .aac, .flac, .ogg, .oga, .opus
+
+The extension is used to give FFmpeg.wasm a useful input filename. A matching extension does not guarantee that an unusual or damaged file can be decoded.
+
+### Browser outputs
+
+- Audio: MP3, M4A/AAC, WAV, FLAC, OGG/Vorbis, and Opus
+- Video: MP4/H.264 + AAC and WebM/VP8 + Opus, for video inputs only
+
+Video output is a full browser-side transcode and can be substantially slower and more memory-intensive than extracting audio. DRM/protected streams, unsupported codecs, and files that exceed the device's practical memory are not supported.
+
+### Workflow
+
+1. Select or drag one or more supported video/audio files into the queue.
+2. Choose an output format. Video outputs are disabled when the queue contains an audio-only input.
+3. Load the local WebAssembly converter the first time you use the page.
+4. Use 轉檔 on an individual queue item, or use 開始批次轉檔 to process all queued and failed items sequentially.
+5. Remove queued, failed, or completed items with 移除; the item currently being converted stays locked until it finishes.
+6. Download each completed result, or use 下載全部 to download all completed files as one ZIP archive.
 
 The browser UI does not impose a hard file-size cap. Files larger than 250 MiB show a memory warning because browser conversion may require several times the input size in working memory; the practical limit depends on the device and browser.
-
 ### Local Development
 
 ```bash
@@ -305,10 +320,12 @@ Browser application files:
 
 ## Technical Details
 
-- **Audio Codec**: libmp3lame
-- **Bitrate**: Browser presets 128/192/256/320 kbps; 192 kbps is the default
-- **Sample Rate**: Preserved from source
-- **Channels**: Preserved from source
+- **Browser engine**: @ffmpeg/core 0.12.10 through ffmpeg.wasm
+- **Audio encoders**: libmp3lame, native AAC, PCM, FLAC, libvorbis, and libopus
+- **Video encoders**: libx264 for MP4 and libvpx for WebM
+- **MP3 bitrate**: Browser presets 128/192/256/320 kbps; 192 kbps is the default
+- **Sample rate/channels**: Preserved where the selected output format permits it
+- **Privacy**: Files stay in browser memory and are not uploaded by the application
 
 ## Contributing
 
