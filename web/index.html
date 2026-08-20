@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="在瀏覽器內將 MP4 轉換成 MP3，不上傳影片檔案。"
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; worker-src 'self' blob:; base-uri 'none'; form-action 'self'"
+    />
+    <title>Media Format Converter｜MP4 to MP3</title>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="./" aria-label="Media Format Converter 首頁">
+          <span class="brand-mark" aria-hidden="true">↯</span>
+          <span>Media Format Converter</span>
+        </a>
+        <a
+          class="source-link"
+          href="https://github.com/ssamexy/MediaFormatConverter"
+          target="_blank"
+          rel="noreferrer"
+        >
+          查看原始碼
+          <span aria-hidden="true">↗</span>
+        </a>
+      </header>
+
+      <main>
+        <section class="hero" aria-labelledby="page-title">
+          <p class="eyebrow">PRIVATE BY DESIGN · RUNS IN YOUR BROWSER</p>
+          <h1 id="page-title">MP4 轉 MP3，檔案不離開你的瀏覽器。</h1>
+          <p class="hero-copy">
+            使用 WebAssembly 版 FFmpeg 在本機完成轉檔。沒有後端上傳、沒有登入，選取檔案後即可開始。
+          </p>
+        </section>
+
+        <section class="converter-card" aria-labelledby="converter-title">
+          <div class="card-heading">
+            <div>
+              <p class="section-kicker">BROWSER CONVERTER</p>
+              <h2 id="converter-title">選取一個 MP4 檔案</h2>
+            </div>
+            <span class="format-badge">MP4 → MP3</span>
+          </div>
+
+          <div class="privacy-note" role="note">
+            <span class="privacy-icon" aria-hidden="true">✓</span>
+            <div>
+              <strong>檔案只在瀏覽器記憶體中處理</strong>
+              <p>本頁只會下載轉檔引擎；不會把你的影片送到伺服器。</p>
+            </div>
+          </div>
+
+          <label class="drop-zone" for="file-input" id="drop-zone">
+            <input id="file-input" type="file" accept=".mp4,video/mp4" />
+            <span class="upload-icon" aria-hidden="true">↑</span>
+            <span class="drop-title">拖曳 MP4 到這裡</span>
+            <span class="drop-subtitle">或點擊選取檔案（單檔上限 250 MiB）</span>
+            <span class="selected-file" id="selected-file">尚未選取檔案</span>
+          </label>
+
+          <div class="controls">
+            <button class="button button-secondary" id="load-button" type="button">
+              載入轉檔器
+            </button>
+            <button class="button button-primary" id="convert-button" type="button" disabled>
+              開始轉檔
+            </button>
+          </div>
+
+          <div class="status-area" aria-live="polite">
+            <div class="progress-row">
+              <progress id="progress" max="100" value="0" hidden></progress>
+              <span id="progress-label"></span>
+            </div>
+            <p class="status-message" id="status-message">請先載入轉檔器，再選取 MP4 檔案。</p>
+          </div>
+
+          <div class="output-panel" id="output-panel" hidden>
+            <div class="output-icon" aria-hidden="true">♫</div>
+            <div class="output-copy">
+              <strong>轉檔完成</strong>
+              <span id="output-summary">你的 MP3 已準備好下載。</span>
+            </div>
+            <a class="button button-download" id="download-link" href="#">下載 MP3</a>
+          </div>
+        </section>
+
+        <section class="details-grid" aria-label="使用說明">
+          <article class="detail-card">
+            <span class="detail-number">01</span>
+            <h2>載入引擎</h2>
+            <p>第一次使用會下載約 31 MiB 的 WebAssembly 轉檔引擎，之後可由瀏覽器快取重複使用。</p>
+          </article>
+          <article class="detail-card">
+            <span class="detail-number">02</span>
+            <h2>選取檔案</h2>
+            <p>檔案會留在你的裝置上，轉檔過程不需要上傳到任何 API 或雲端儲存服務。</p>
+          </article>
+          <article class="detail-card">
+            <span class="detail-number">03</span>
+            <h2>下載結果</h2>
+            <p>輸出使用 192 kbps MP3。大型或很長的影片可能需要較多記憶體與處理時間。</p>
+          </article>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <span>Built with ffmpeg.wasm</span>
+        <a href="https://github.com/ffmpegwasm/ffmpeg.wasm" target="_blank" rel="noreferrer">FFmpeg WebAssembly ↗</a>
+      </footer>
+    </div>
+
+    <script type="module" src="/src/app.js"></script>
+  </body>
+</html>

@@ -50,3 +50,10 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.log
+
+# Generated browser build assets
+web/public/ffmpeg/
+docs/
+
+# JavaScript dependencies
+node_modules/
