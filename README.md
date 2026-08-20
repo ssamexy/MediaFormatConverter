@@ -148,7 +148,14 @@ For more control over the conversion process:
 
 ## Browser Usage
 
-The browser converter lives in `web/` and uses pinned `ffmpeg.wasm` packages with a Vite build. The conversion runs in a Web Worker in the browser; the selected MP4 is not sent to a backend or cloud storage service.
+The browser converter lives in `web/` and uses pinned `ffmpeg.wasm` packages with a Vite build. The conversion runs in a Web Worker in the browser; selected MP4 files are not sent to a backend or cloud storage service.
+
+In the browser UI:
+
+1. Select or drag one or more `.mp4` files into the queue.
+2. Load the local WebAssembly converter the first time you use the page.
+3. Start the batch conversion; files are processed sequentially in the browser.
+4. Download each completed MP3 from its queue item.
 
 ### Local Development
 

@@ -5,115 +5,233 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="在瀏覽器內將 MP4 轉換成 MP3，不上傳影片檔案。"
+      content="在瀏覽器內批次將 MP4 轉換成 MP3，不上傳影片檔案。"
     />
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; worker-src 'self' blob:; base-uri 'none'; form-action 'self'"
     />
     <title>Media Format Converter｜MP4 to MP3</title>
+    <link rel="stylesheet" href="./src/style.css?direct" />
   </head>
   <body>
     <div class="page-shell">
       <header class="site-header">
         <a class="brand" href="./" aria-label="Media Format Converter 首頁">
           <span class="brand-mark" aria-hidden="true">↯</span>
-          <span>Media Format Converter</span>
+          <span class="brand-copy">
+            <strong>Media Format Converter</strong>
+            <small>Browser audio workspace</small>
+          </span>
         </a>
-        <a
-          class="source-link"
-          href="https://github.com/ssamexy/MediaFormatConverter"
-          target="_blank"
-          rel="noreferrer"
-        >
-          查看原始碼
-          <span aria-hidden="true">↗</span>
-        </a>
+
+        <div class="header-actions">
+          <span class="privacy-chip"><span aria-hidden="true">●</span> 私密處理</span>
+          <a
+            class="source-link"
+            href="https://github.com/ssamexy/MediaFormatConverter"
+            target="_blank"
+            rel="noreferrer"
+          >
+            GitHub
+            <span aria-hidden="true">↗</span>
+          </a>
+        </div>
       </header>
 
       <main>
         <section class="hero" aria-labelledby="page-title">
-          <p class="eyebrow">PRIVATE BY DESIGN · RUNS IN YOUR BROWSER</p>
-          <h1 id="page-title">MP4 轉 MP3，檔案不離開你的瀏覽器。</h1>
-          <p class="hero-copy">
-            使用 WebAssembly 版 FFmpeg 在本機完成轉檔。沒有後端上傳、沒有登入，選取檔案後即可開始。
-          </p>
+          <div class="hero-copy-block">
+            <p class="eyebrow">LOCAL-FIRST · NO UPLOAD</p>
+            <h1 id="page-title">把影片聲音<br /><span>留在你的裝置。</span></h1>
+            <p class="hero-copy">
+              一次加入多個 MP4，依序轉成 MP3。整個流程在你的瀏覽器完成，檔案不會上傳到伺服器。
+            </p>
+          </div>
+
+          <aside class="hero-note" aria-label="轉檔特色">
+            <span class="hero-note-icon" aria-hidden="true">✦</span>
+            <div>
+              <strong>瀏覽器端 WebAssembly</strong>
+              <p>第一次載入引擎後，就能在同一個佇列中批次處理檔案。</p>
+            </div>
+            <div class="hero-note-meta">
+              <span>MP4</span>
+              <span class="hero-arrow" aria-hidden="true">→</span>
+              <span>MP3</span>
+              <span class="hero-note-quality">192 kbps</span>
+            </div>
+          </aside>
         </section>
 
-        <section class="converter-card" aria-labelledby="converter-title">
-          <div class="card-heading">
-            <div>
-              <p class="section-kicker">BROWSER CONVERTER</p>
-              <h2 id="converter-title">選取一個 MP4 檔案</h2>
+        <nav class="workflow-steps" aria-label="使用流程">
+          <div class="workflow-step active" data-step="1">
+            <span class="step-number">01</span>
+            <span class="step-copy">
+              <strong>選取檔案</strong>
+              <small>拖曳或點擊加入</small>
+            </span>
+          </div>
+          <div class="workflow-connector" aria-hidden="true"></div>
+          <div class="workflow-step" data-step="2">
+            <span class="step-number">02</span>
+            <span class="step-copy">
+              <strong>開始轉檔</strong>
+              <small>瀏覽器依序處理</small>
+            </span>
+          </div>
+          <div class="workflow-connector" aria-hidden="true"></div>
+          <div class="workflow-step" data-step="3">
+            <span class="step-number">03</span>
+            <span class="step-copy">
+              <strong>下載 MP3</strong>
+              <small>每個檔案獨立下載</small>
+            </span>
+          </div>
+        </nav>
+
+        <section class="workspace-grid" aria-label="MP4 轉 MP3 工作區">
+          <div class="workspace-card" aria-labelledby="converter-title">
+            <div class="card-heading">
+              <div>
+                <p class="section-kicker">CONVERTER WORKSPACE</p>
+                <h2 id="converter-title">加入要轉換的檔案</h2>
+              </div>
+              <span class="format-badge">MP4 <span aria-hidden="true">→</span> MP3</span>
             </div>
-            <span class="format-badge">MP4 → MP3</span>
-          </div>
 
-          <div class="privacy-note" role="note">
-            <span class="privacy-icon" aria-hidden="true">✓</span>
-            <div>
-              <strong>檔案只在瀏覽器記憶體中處理</strong>
-              <p>本頁只會下載轉檔引擎；不會把你的影片送到伺服器。</p>
+            <div class="privacy-note" role="note">
+              <span class="privacy-icon" aria-hidden="true">✓</span>
+              <div>
+                <strong>檔案只在瀏覽器記憶體中處理</strong>
+                <p>不需要登入，也不會把影片送到 API 或雲端儲存服務。</p>
+              </div>
+            </div>
+
+            <div
+              class="drop-zone"
+              id="drop-zone"
+              role="button"
+              tabindex="0"
+              aria-describedby="upload-help"
+            >
+              <input
+                id="file-input"
+                type="file"
+                accept=".mp4,video/mp4"
+                multiple
+                aria-label="選取 MP4 檔案"
+              />
+              <span class="upload-icon" aria-hidden="true">↑</span>
+              <h3>拖曳 MP4 檔案到這裡</h3>
+              <p>或點擊下方按鈕，一次選取多個檔案</p>
+              <button class="button button-secondary" id="choose-files-button" type="button">
+                選取 MP4 檔案
+              </button>
+              <span class="selected-file" id="selected-file">尚未加入檔案</span>
+            </div>
+            <p class="field-help" id="upload-help">
+              支援 .mp4 · 單檔上限 250 MiB · 轉檔後可逐檔下載 MP3
+            </p>
+
+            <div class="engine-panel">
+              <div class="engine-status">
+                <span class="engine-dot" id="engine-dot" aria-hidden="true"></span>
+                <div>
+                  <strong id="engine-status">轉檔器尚未載入</strong>
+                  <small id="engine-detail">第一次使用會載入約 31 MiB 的本機引擎。</small>
+                </div>
+              </div>
+              <button class="button button-secondary" id="load-button" type="button">
+                載入轉檔器
+              </button>
+            </div>
+
+            <div class="conversion-panel">
+              <div class="status-area" aria-live="polite">
+                <div class="progress-row">
+                  <progress id="progress" max="100" value="0" hidden></progress>
+                  <span id="progress-label"></span>
+                </div>
+                <p class="status-message" id="status-message">
+                  先加入檔案，再載入轉檔器即可開始。
+                </p>
+              </div>
+              <button class="button button-primary conversion-button" id="convert-button" type="button" disabled>
+                開始批次轉檔
+                <span class="button-count" id="convert-count">0</span>
+              </button>
             </div>
           </div>
 
-          <label class="drop-zone" for="file-input" id="drop-zone">
-            <input id="file-input" type="file" accept=".mp4,video/mp4" />
-            <span class="upload-icon" aria-hidden="true">↑</span>
-            <span class="drop-title">拖曳 MP4 到這裡</span>
-            <span class="drop-subtitle">或點擊選取檔案（單檔上限 250 MiB）</span>
-            <span class="selected-file" id="selected-file">尚未選取檔案</span>
-          </label>
-
-          <div class="controls">
-            <button class="button button-secondary" id="load-button" type="button">
-              載入轉檔器
-            </button>
-            <button class="button button-primary" id="convert-button" type="button" disabled>
-              開始轉檔
-            </button>
-          </div>
-
-          <div class="status-area" aria-live="polite">
-            <div class="progress-row">
-              <progress id="progress" max="100" value="0" hidden></progress>
-              <span id="progress-label"></span>
+          <aside class="queue-card" aria-labelledby="queue-title">
+            <div class="queue-heading">
+              <div>
+                <p class="section-kicker">BATCH QUEUE</p>
+                <h2 id="queue-title">目前佇列 <span id="queue-count">0</span></h2>
+              </div>
+              <button class="text-button" id="clear-button" type="button" disabled>清除全部</button>
             </div>
-            <p class="status-message" id="status-message">請先載入轉檔器，再選取 MP4 檔案。</p>
-          </div>
 
-          <div class="output-panel" id="output-panel" hidden>
-            <div class="output-icon" aria-hidden="true">♫</div>
-            <div class="output-copy">
-              <strong>轉檔完成</strong>
-              <span id="output-summary">你的 MP3 已準備好下載。</span>
+            <div class="queue-stats" aria-label="佇列統計">
+              <div class="queue-stat">
+                <strong id="queued-count">0</strong>
+                <span>待處理</span>
+              </div>
+              <div class="queue-stat queue-stat-success">
+                <strong id="completed-count">0</strong>
+                <span>已完成</span>
+              </div>
+              <div class="queue-stat queue-stat-danger">
+                <strong id="failed-count">0</strong>
+                <span>失敗</span>
+              </div>
             </div>
-            <a class="button button-download" id="download-link" href="#">下載 MP3</a>
-          </div>
+
+            <div class="queue-empty" id="queue-empty">
+              <span class="queue-empty-icon" aria-hidden="true">☷</span>
+              <strong>佇列目前為空</strong>
+              <p>把一個或多個 MP4 拖到左側，就會顯示在這裡。</p>
+            </div>
+            <div class="queue-list" id="queue-list" role="list"></div>
+
+            <p class="queue-footnote">
+              <span aria-hidden="true">⚡</span>
+              轉檔依序在此瀏覽器執行；大型檔案可能需要較多記憶體。
+            </p>
+          </aside>
         </section>
 
-        <section class="details-grid" aria-label="使用說明">
-          <article class="detail-card">
-            <span class="detail-number">01</span>
-            <h2>載入引擎</h2>
-            <p>第一次使用會下載約 31 MiB 的 WebAssembly 轉檔引擎，之後可由瀏覽器快取重複使用。</p>
+        <section class="help-grid" aria-label="使用說明">
+          <article class="help-card">
+            <span class="help-icon" aria-hidden="true">01</span>
+            <div>
+              <h2>加入檔案</h2>
+              <p>拖曳或點擊選取多個 MP4，檔案會先進入佇列，不會立即上傳。</p>
+            </div>
           </article>
-          <article class="detail-card">
-            <span class="detail-number">02</span>
-            <h2>選取檔案</h2>
-            <p>檔案會留在你的裝置上，轉檔過程不需要上傳到任何 API 或雲端儲存服務。</p>
+          <article class="help-card">
+            <span class="help-icon" aria-hidden="true">02</span>
+            <div>
+              <h2>載入並轉換</h2>
+              <p>按下「載入轉檔器」後，再按「開始批次轉檔」；轉檔會依序進行。</p>
+            </div>
           </article>
-          <article class="detail-card">
-            <span class="detail-number">03</span>
-            <h2>下載結果</h2>
-            <p>輸出使用 192 kbps MP3。大型或很長的影片可能需要較多記憶體與處理時間。</p>
+          <article class="help-card">
+            <span class="help-icon" aria-hidden="true">03</span>
+            <div>
+              <h2>逐檔下載</h2>
+              <p>每個完成項目都有自己的下載按鈕，保留你想要的 MP3 即可。</p>
+            </div>
           </article>
         </section>
       </main>
 
       <footer class="site-footer">
-        <span>Built with ffmpeg.wasm</span>
-        <a href="https://github.com/ffmpegwasm/ffmpeg.wasm" target="_blank" rel="noreferrer">FFmpeg WebAssembly ↗</a>
+        <span>Built with ffmpeg.wasm · runs locally in your browser</span>
+        <a href="https://github.com/ffmpegwasm/ffmpeg.wasm" target="_blank" rel="noreferrer">
+          FFmpeg WebAssembly ↗
+        </a>
       </footer>
     </div>
 
