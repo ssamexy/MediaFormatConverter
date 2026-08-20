@@ -10,6 +10,7 @@ A simple and efficient tool to convert MP4 video files to MP3 audio format. Work
 - **High Quality**: Uses 192kbps bitrate for excellent audio quality
 - **User-Friendly**: Interactive CLI interface with clear prompts
 - **Automatic Setup**: Auto-installs dependencies on Google Colab
+- **Browser Converter**: Convert MP4 files to MP3 locally in a web browser with WebAssembly
 
 ## Requirements
 
@@ -145,6 +146,25 @@ For more control over the conversion process:
    - Remember to download your MP3 files before closing the notebook
    - Colab has file size limits (typically 100MB per file for free tier)
 
+## Browser Usage
+
+The browser converter lives in `web/` and uses pinned `ffmpeg.wasm` packages with a Vite build. The conversion runs in a Web Worker in the browser; the selected MP4 is not sent to a backend or cloud storage service.
+
+### Local Development
+
+```bash
+npm install
+npm run dev
+```
+
+The production build is generated with:
+
+```bash
+npm run build
+```
+
+The Pages workflow builds the site and deploys the generated `docs/` directory when changes reach `main`.
+
 ## Examples
 
 ### Local Example 1: Convert a single file
@@ -260,6 +280,14 @@ MediaFormatConverter/
 ├── spec.md                                   # Project specification
 └── README.md                                 # This file
 ```
+
+Browser application files:
+
+- `web/` - browser converter source
+- `package.json` and `package-lock.json` - frontend dependencies and scripts
+- `scripts/copy-ffmpeg-core.mjs` - copies the pinned local WASM core into the build
+- `vite.config.js` - Vite configuration
+- `.github/workflows/pages.yml` - Pages build and deployment workflow
 
 ## Technical Details
 
