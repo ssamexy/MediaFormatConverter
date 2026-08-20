@@ -11,6 +11,9 @@ A simple and efficient tool to convert MP4 video files to MP3 audio format. Work
 - **User-Friendly**: Interactive CLI interface with clear prompts
 - **Automatic Setup**: Auto-installs dependencies on Google Colab
 - **Browser Converter**: Convert MP4 files to MP3 locally in a web browser with WebAssembly
+- **Browser Queue Controls**: Remove queued items, convert one item, retry failures, or process the remaining queue in batch
+- **Batch Downloads**: Download completed MP3 files individually or as one ZIP archive
+- **Configurable Bitrate**: Choose 128, 192, 256, or 320 kbps for the next browser conversion
 
 ## Requirements
 
@@ -154,8 +157,12 @@ In the browser UI:
 
 1. Select or drag one or more `.mp4` files into the queue.
 2. Load the local WebAssembly converter the first time you use the page.
-3. Start the batch conversion; files are processed sequentially in the browser.
-4. Download each completed MP3 from its queue item.
+3. Choose an MP3 bitrate for the next conversion: 128, 192, 256, or 320 kbps.
+4. Use `轉檔` on an individual queue item, or use `開始轉檔` to process all queued and failed items sequentially.
+5. Remove queued, failed, or completed items with `移除`; the item currently being converted stays locked until it finishes.
+6. Download each completed MP3, or use `下載全部` to download all completed files as one ZIP archive.
+
+The browser UI does not impose a hard file-size cap. Files larger than 250 MiB show a memory warning because browser conversion may require several times the input size in working memory; the practical limit depends on the device and browser.
 
 ### Local Development
 
@@ -299,7 +306,7 @@ Browser application files:
 ## Technical Details
 
 - **Audio Codec**: libmp3lame
-- **Bitrate**: 192kbps
+- **Bitrate**: Browser presets 128/192/256/320 kbps; 192 kbps is the default
 - **Sample Rate**: Preserved from source
 - **Channels**: Preserved from source
 

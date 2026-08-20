@@ -59,7 +59,7 @@
               <span>MP4</span>
               <span class="hero-arrow" aria-hidden="true">→</span>
               <span>MP3</span>
-              <span class="hero-note-quality">192 kbps</span>
+              <span class="hero-note-quality" id="hero-quality">192 kbps</span>
             </div>
           </aside>
         </section>
@@ -131,8 +131,25 @@
               <span class="selected-file" id="selected-file">尚未加入檔案</span>
             </div>
             <p class="field-help" id="upload-help">
-              支援 .mp4 · 單檔上限 250 MiB · 轉檔後可逐檔下載 MP3
+              支援 .mp4 · 不設硬性大小上限 · 大型檔案可能需要較多記憶體
             </p>
+
+            <div class="settings-panel" aria-label="MP3 輸出設定">
+              <div class="settings-heading">
+                <p class="section-kicker">OUTPUT SETTINGS</p>
+                <span>MP3</span>
+              </div>
+              <label class="settings-field" for="bitrate-select">
+                <span>音質 / 位元率</span>
+                <select id="bitrate-select">
+                  <option value="128k">128 kbps · 小檔案</option>
+                  <option value="192k" selected>192 kbps · 建議</option>
+                  <option value="256k">256 kbps · 高音質</option>
+                  <option value="320k">320 kbps · 最高</option>
+                </select>
+              </label>
+              <small>設定會套用到下一次轉檔；已完成的 MP3 不會被改寫。</small>
+            </div>
 
             <div class="engine-panel">
               <div class="engine-status">
@@ -170,7 +187,13 @@
                 <p class="section-kicker">BATCH QUEUE</p>
                 <h2 id="queue-title">目前佇列 <span id="queue-count">0</span></h2>
               </div>
-              <button class="text-button" id="clear-button" type="button" disabled>清除全部</button>
+              <div class="queue-heading-actions">
+                <button class="text-button text-button-primary" id="download-all-button" type="button" disabled>
+                  下載全部
+                  <span class="button-count" id="download-all-count">0</span>
+                </button>
+                <button class="text-button" id="clear-button" type="button" disabled>清除全部</button>
+              </div>
             </div>
 
             <div class="queue-stats" aria-label="佇列統計">
@@ -197,7 +220,7 @@
 
             <p class="queue-footnote">
               <span aria-hidden="true">⚡</span>
-              轉檔依序在此瀏覽器執行；大型檔案可能需要較多記憶體。
+              轉檔依序在此瀏覽器執行；無硬性大小上限，但大型檔案可能耗用較多記憶體。
             </p>
           </aside>
         </section>
@@ -207,21 +230,21 @@
             <span class="help-icon" aria-hidden="true">01</span>
             <div>
               <h2>加入檔案</h2>
-              <p>拖曳或點擊選取多個 MP4，檔案會先進入佇列，不會立即上傳。</p>
+              <p>拖曳或點擊選取多個 MP4，檔案會先進入佇列，不會立即上傳；也可隨時移除項目。</p>
             </div>
           </article>
           <article class="help-card">
             <span class="help-icon" aria-hidden="true">02</span>
             <div>
               <h2>載入並轉換</h2>
-              <p>按下「載入轉檔器」後，再按「開始批次轉檔」；轉檔會依序進行。</p>
+              <p>載入引擎後，可按「開始批次轉檔」，或在單一佇列項目按「轉檔」。</p>
             </div>
           </article>
           <article class="help-card">
             <span class="help-icon" aria-hidden="true">03</span>
             <div>
               <h2>逐檔下載</h2>
-              <p>每個完成項目都有自己的下載按鈕，保留你想要的 MP3 即可。</p>
+              <p>可逐檔下載，也可按「下載全部」一次取得 ZIP；完成項目仍可單獨移除。</p>
             </div>
           </article>
         </section>
