@@ -352,7 +352,14 @@ export function t(key, values = {}) {
 
 export function applyTranslations(root = document) {
   root.querySelectorAll("[data-i18n]").forEach((element) => {
-    element.textContent = t(element.dataset.i18n);
+    const translated = t(element.dataset.i18n);
+
+    if (element.tagName === "OPTGROUP") {
+      element.label = translated;
+      return;
+    }
+
+    element.textContent = translated;
   });
 
   root.querySelectorAll("[data-i18n-content]").forEach((element) => {
