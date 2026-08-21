@@ -14,6 +14,8 @@ A local-first media converter for common video and audio formats. The browser ap
 - **Browser Queue Controls**: Remove queued items, convert one item, retry failures, or process the remaining queue in batch
 - **Batch Downloads**: Download completed results individually or as one ZIP archive
 - **Configurable Bitrate**: Choose 128, 192, 256, or 320 kbps for the next browser conversion
+- **Theme and Language Preferences**: Switch between dark/light themes and Traditional Chinese/English; preferences are saved in the browser
+- **Loudness Normalization**: Optionally apply FFmpeg `loudnorm` during conversion so audio output has a more consistent playback level
 
 ## Requirements
 
@@ -173,10 +175,13 @@ Video output is a full browser-side transcode and can be substantially slower an
 
 1. Select or drag one or more supported video/audio files into the queue.
 2. Choose an output format. Video outputs are disabled when the queue contains an audio-only input.
-3. Load the local WebAssembly converter the first time you use the page.
-4. Use 轉檔 on an individual queue item, or use 開始批次轉檔 to process all queued and failed items sequentially.
-5. Remove queued, failed, or completed items with 移除; the item currently being converted stays locked until it finishes.
-6. Download each completed result, or use 下載全部 to download all completed files as one ZIP archive.
+3. Optionally enable loudness normalization in Output Settings. It applies to the next conversion, including audio tracks in video output.
+4. Load the local WebAssembly converter the first time you use the page.
+5. Use Convert on an individual queue item, or use Start batch conversion to process all queued and failed items sequentially.
+6. Remove queued, failed, or completed items with Remove; the item currently being converted stays locked until it finishes.
+7. Download each completed result, or use Download all to download all completed files as one ZIP archive.
+
+The header language selector switches between Traditional Chinese and English. The adjacent theme control switches between dark and light mode; both preferences persist in the current browser.
 
 The browser UI does not impose a hard file-size cap. Files larger than 250 MiB show a memory warning because browser conversion may require several times the input size in working memory; the practical limit depends on the device and browser.
 ### Local Development
@@ -322,6 +327,7 @@ Browser application files:
 
 - **Browser engine**: @ffmpeg/core 0.12.10 through ffmpeg.wasm
 - **Audio encoders**: libmp3lame, native AAC, PCM, FLAC, libvorbis, and libopus
+- **Audio processing**: Optional `loudnorm` loudness normalization targets a consistent integrated level for each converted file
 - **Video encoders**: libx264 for MP4 and libvpx for WebM
 - **MP3 bitrate**: Browser presets 128/192/256/320 kbps; 192 kbps is the default
 - **Sample rate/channels**: Preserved where the selected output format permits it

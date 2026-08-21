@@ -150,9 +150,10 @@ export function canConvertToOutput(file, formatId) {
   return Boolean(input && (format.kind === "audio" || input.kind === "video"));
 }
 
-export function buildOutputArgs(formatId, inputFileName, outputFileName, bitrate) {
+export function buildOutputArgs(formatId, inputFileName, outputFileName, bitrate, normalizeAudio = false) {
   const format = getOutputFormat(formatId);
   const metadataArgs = ["-map_metadata", "0"];
+  const audioFilterArgs = normalizeAudio ? ["-af", "loudnorm=I=-16:LRA=11:TP=-1.5"] : [];
 
   if (format.id === "mp3") {
     return [
@@ -165,6 +166,7 @@ export function buildOutputArgs(formatId, inputFileName, outputFileName, bitrate
       "libmp3lame",
       "-b:a",
       bitrate,
+      ...audioFilterArgs,
       ...metadataArgs,
       outputFileName,
     ];
@@ -183,6 +185,7 @@ export function buildOutputArgs(formatId, inputFileName, outputFileName, bitrate
       "192k",
       "-movflags",
       "+faststart",
+      ...audioFilterArgs,
       ...metadataArgs,
       outputFileName,
     ];
@@ -197,6 +200,7 @@ export function buildOutputArgs(formatId, inputFileName, outputFileName, bitrate
       "0:a:0?",
       "-c:a",
       "pcm_s16le",
+      ...audioFilterArgs,
       ...metadataArgs,
       outputFileName,
     ];
@@ -211,6 +215,7 @@ export function buildOutputArgs(formatId, inputFileName, outputFileName, bitrate
       "0:a:0?",
       "-c:a",
       "flac",
+      ...audioFilterArgs,
       ...metadataArgs,
       outputFileName,
     ];
@@ -227,6 +232,7 @@ export function buildOutputArgs(formatId, inputFileName, outputFileName, bitrate
       "libvorbis",
       "-q:a",
       "4",
+      ...audioFilterArgs,
       ...metadataArgs,
       outputFileName,
     ];
@@ -245,6 +251,7 @@ export function buildOutputArgs(formatId, inputFileName, outputFileName, bitrate
       "128k",
       "-vbr",
       "on",
+      ...audioFilterArgs,
       ...metadataArgs,
       outputFileName,
     ];
@@ -272,6 +279,7 @@ export function buildOutputArgs(formatId, inputFileName, outputFileName, bitrate
       "128k",
       "-movflags",
       "+faststart",
+      ...audioFilterArgs,
       ...metadataArgs,
       outputFileName,
     ];
@@ -298,6 +306,7 @@ export function buildOutputArgs(formatId, inputFileName, outputFileName, bitrate
     "libopus",
     "-b:a",
     "128k",
+    ...audioFilterArgs,
     ...metadataArgs,
     outputFileName,
   ];
